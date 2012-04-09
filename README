@@ -1,0 +1,55 @@
+This is an attempt at locating "hot spots" around you.
+Each pin represent a user action based on a particular location around San Francisco.
+
+We push pins to a web service running on tornado, and display these pins on a Google Map.
+The pins pushed to tornado aren't persisted, since the data can be recreated by using ElasticSearch.
+
+There are 2 files in this project:
+> main.py:
+
+- Generates as many locations as asked, and feeds then to the web service
+
+> hotspot.py
+
+- A web service running with tornado, ready to absorb every single pin you feed it, and display it on a map.
+It tries to be smart enough to not repin a hotspot too close to another hot spot.
+
+Runs by default on port 8888.
+
+# How to get started ?
+You need to have ElasticSearch running. Details about how to do so : 
+http://www.elasticsearch.org/guide/reference/setup/installation.html
+
+1. Create a new index:
+> curl -XPUT http://localhost:9200/pins
+
+2. Generate the associated mapping
+> curl -XPUT 'http://localhost:9200/pins/pin/_mapping' -d '
+{
+    "pin" : {
+        "properties" : {
+            "location" : {
+                "type" : "geo_point"
+            }
+        }
+    }
+}'
+
+3. Start the web service 
+> ./hotspot.py --prod=False --logging=debug
+
+4. Feed data to ElasticSearch, and pass it on to the Web Service
+> ./main.py --config=config.yaml --count=100
+
+5. Open your browser and watch! http://localhost:8888
+Here we can see that even with a lot of actions all over the map, we still manage to find out the 2 main "hot spots" of San Francisco
+http://dl.dropbox.com/u/12554984/7d34.png
+
+As we zoom in, it becomes obvious that something is happening at that particular location : 
+From: http://dl.dropbox.com/u/12554984/40fb.png
+To : http://dl.dropbox.com/u/12554984/f98c.png
+
+Same goes for the AT&T park :
+http://dl.dropbox.com/u/12554984/16bf.png
+
+That's it for now. 

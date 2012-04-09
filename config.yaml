@@ -1,0 +1,4 @@
+elasticsearch:
+  host: localhost:9200
+
+hotspot: localhost:8888
